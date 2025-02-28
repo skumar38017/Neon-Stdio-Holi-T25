@@ -31,9 +31,9 @@ alembic downgrade base
 ----------------------------------------RabbitMQ User----------------------------------------
 # --> in container terminal
 
-docker exec -it rabbitmq rabbitmqctl add_user holi-t25 holi-t25  
-docker exec -it rabbitmq rabbitmqctl set_permissions -p / holi-t25 ".*" ".*" ".*"
-docker exec -it rabbitmq rabbitmqctl set_user_tags holi-t25 administrator
+docker exec -it rabbitmq rabbitmqctl add_user Neon-Studioz-Holi-T25 Neon-Studioz-Holi-T25
+docker exec -it rabbitmq rabbitmqctl set_permissions -p / Neon-Studioz-Holi-T25 ".*" ".*" ".*"
+docker exec -it rabbitmq rabbitmqctl set_user_tags Neon-Studioz-Holi-T25 administrator
 
 docker exec -it rabbitmq rabbitmq-plugins enable rabbitmq_management rabbitmq_management rabbitmq_federation rabbitmq_federation_management rabbitmq_shovel rabbitmq_shovel_management
 

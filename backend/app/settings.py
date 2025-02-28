@@ -40,8 +40,6 @@ class Settings:
     RABBITMQ_PASSWORD: str = os.getenv("RABBITMQ_PASSWORD", "Neon-Studioz-Holi-T25")
     RABBITMQ_PORT: int = int(os.getenv("RABBITMQ_PORT", 5672))
     RABBITMQ_VHOST: str = os.getenv("RABBITMQ_VHOST", "/")
-    RABBITMQ_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}//"
-    print(f"Connecting to: {RABBITMQ_URL}")  # Debugging
 
     # Redis Configuration
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")

@@ -2,15 +2,10 @@
 
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Enum,Float
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 import uuid
 import datetime
-from datetime import datetime, timezone
-from app.database.base import Base
-
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from datetime import datetime
+from app.database.base import Base  # ✅ Use a single Base from base.py
 
 class User(Base):
     __tablename__ = "users"
@@ -50,7 +45,7 @@ class Order(Base):
     __tablename__ = "orders"
 
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_uuid = Column(String(36), ForeignKey('users.uuid', ondelete="CASCADE"), nullable=False)
+    user_uuid = Column(String(36), ForeignKey('public.users.uuid', ondelete="CASCADE"), nullable=False)
     razorpay_order_id = Column(String(50), nullable=False, unique=True)  # Razorpay order tracking
     total_amount = Column(Float, nullable=False)
     order_status = Column(Enum('created', 'paid', 'cancelled', name='order_status'), default='created')
@@ -68,7 +63,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_uuid = Column(String(36), ForeignKey('users.uuid', ondelete="CASCADE"), nullable=False)
+    user_uuid = Column(String(36), ForeignKey('public.users.uuid', ondelete="CASCADE"), nullable=False)
     ticket_description = Column(String(500), nullable=False)
     ticket_type = Column(String(50), nullable=False)
     ticket_price = Column(Integer, nullable=False)
@@ -108,7 +103,7 @@ class QRCode(Base):
     __tablename__ = "qr_codes"
 
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_uuid = Column(String(36), ForeignKey('users.uuid', ondelete="CASCADE"), nullable=False)
+    user_uuid = Column(String(36), ForeignKey('public.users.uuid', ondelete="CASCADE"), nullable=False)
     payment_uuid = Column(String(36), ForeignKey('payments.uuid', ondelete="CASCADE"), nullable=False)
     qr_code = Column(String(255), nullable=False)
     qr_unique_id = Column(String(50), nullable=False, unique=True)
@@ -130,7 +125,7 @@ class SMS(Base):
     __tablename__ = "sms"
 
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_uuid = Column(String(36), ForeignKey('users.uuid', ondelete="CASCADE"), nullable=False)
+    user_uuid = Column(String(36), ForeignKey('public.users.uuid', ondelete="CASCADE"), nullable=False)
     payment_uuid = Column(String(36), ForeignKey('payments.uuid', ondelete="CASCADE"), nullable=True)
     qr_code_uuid = Column(String(36), ForeignKey('qr_codes.uuid', ondelete="CASCADE"), nullable=True)
     phone_number = Column(String(16), nullable=False)
@@ -154,7 +149,7 @@ class Email(Base):
     __tablename__ = "emails"
 
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_uuid = Column(String(36), ForeignKey('users.uuid', ondelete="CASCADE"), nullable=False)
+    user_uuid = Column(String(36), ForeignKey('public.users.uuid', ondelete="CASCADE"), nullable=False)
     payment_uuid = Column(String(36), ForeignKey('payments.uuid', ondelete="CASCADE"), nullable=True)
     qr_code_uuid = Column(String(36), ForeignKey('qr_codes.uuid', ondelete="CASCADE"), nullable=True)
     sms_uuid = Column(String(36), ForeignKey('sms.uuid', ondelete="CASCADE"), nullable=True)
