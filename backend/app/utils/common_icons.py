@@ -1,3 +1,5 @@
+#  app/utils/common_icons.py
+
 # Define event icons
 event_icons = {
     # Payment-related events
@@ -114,7 +116,8 @@ event_icons = {
     "notification.read": "✅📩",
     "notification.deleted": "🗑️🔕",
 
-    # Miscellaneous
+    # iscellaneous
+    "FinalOutcome": "🎯",
     "password.show": "👁️",
     "password.hide": "👁️",
     "registration.form": "📝",

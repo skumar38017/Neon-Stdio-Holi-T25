@@ -54,7 +54,8 @@ class Config:
             "password": settings.POSTGRES_PASSWORD,
             "db": settings.POSTGRES_DB,
             "role": settings.POSTGRES_ROLE,
-            "db_name": settings.POSTGRES_DB_NAME
+            "db_name": settings.POSTGRES_DB_NAME,
+            "admin_db_url": settings.ADMIN_DB_URL
         }
 
     # RabbitMQ URL

@@ -33,6 +33,7 @@ class Settings:
     # Custom Role and Database Name
     POSTGRES_ROLE: str = os.getenv("POSTGRES_ROLE", "postgres")  # Role name
     POSTGRES_DB_NAME: str = os.getenv("POSTGRES_DB_NAME", "postgres")  # Database name
+    ADMIN_DB_URL: str = os.getenv("ADMIN_DB_URL", "postgresql://postgres:your_postgres_password@localhost:5432/postgres")  # Superuser connection
 
     # RabbitMQ Configuration
     RABBITMQ_HOST: str = os.getenv("RABBITMQ_HOST", "localhost")

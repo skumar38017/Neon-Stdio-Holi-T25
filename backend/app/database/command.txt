@@ -1,44 +1,45 @@
+# Creating the commands in a text file format
 
+commands = """
+# 1️⃣ Connect to the PostgreSQL Database
 psql -h localhost -p 5432 -U postgres -d postgres
 
-Then run:
-
-\dt
-✅ This lists all tables in the current database.
-
-
+# 2️⃣ Create Role and Database
 CREATE ROLE "Neon-Studioz-Holi-T25" WITH LOGIN PASSWORD 'Neon-Studioz-Holi-T25';
 CREATE DATABASE "Neon-Studioz-Holi-T25" OWNER "Neon-Studioz-Holi-T25";
 GRANT ALL PRIVILEGES ON DATABASE "Neon-Studioz-Holi-T25" TO "Neon-Studioz-Holi-T25";
 ALTER ROLE "Neon-Studioz-Holi-T25" WITH SUPERUSER CREATEDB CREATEROLE REPLICATION BYPASSRLS;
-    
 
-2️⃣ Run Alembic upgrade head (If Migrations Already Exist)
-If you already have migration files and just need to apply them, run:
-
+# 3️⃣ Run Alembic Migrations (If Migrations Already Exist)
 alembic upgrade head
-✅ This will apply all pending migrations to the database.
 
-3️⃣ If No Migrations Exist, Generate an Initial Migration
-If you haven't created migrations yet, generate them with:
-
+# 4️⃣ Generate Initial Alembic Migration (If No Migrations Exist)
 alembic revision --autogenerate -m "Initial migration"
-✅ This creates a new migration file based on your SQLAlchemy models.
 
-4️⃣ Apply Migrations to Database
-After generating the migration, apply it using:
-
+# 5️⃣ Apply the Newly Generated Migrations to the Database
 alembic upgrade head
-✅ This updates your database schema to match your models.
 
-5️⃣ Verify Migration Status
-To check which migrations have been applied, run:
-
+# 6️⃣ Verify Migration Status
 alembic history
-✅ This lists all migration revisions.
 
-6️⃣ If You Need to Rollback
-If something goes wrong and you need to undo the last migration:
-
+# 7️⃣ Rollback the Last Migration (If Needed)
 alembic downgrade -1
 
+# 8️⃣ Remove a Specific Migration File (If Needed)
+cd alembic/versions
+rm b599ce210611_fix_delete_orphan_issue.py
+
+# 9️⃣ Update Alembic Version Number Manually (If Necessary)
+psql -U Neon-Studioz-Holi-T25 -d Neon-Studioz-Holi-T25
+UPDATE alembic_version SET version_num = '041520bb1f59';
+
+# 🔟 Verify Database Tables
+psql -U Neon-Studioz-Holi-T25 -d Neon-Studioz-Holi-T25 -c "\\dt"
+"""
+
+# Saving the commands to a file
+file_path = "/mnt/data/database_commands.sh"
+with open(file_path, "w") as file:
+    file.write(commands)
+
+file_path

@@ -85,7 +85,7 @@ class Payment(Base):
 
     # Relationships
     user = relationship("User", back_populates="payments")
-    order = relationship("Order", back_populates="payments", cascade="all, delete-orphan")
+    order = relationship("Order", back_populates="payments")
     qr_codes = relationship("QRCode", back_populates="payment", cascade="all, delete-orphan")
     sms = relationship("SMS", back_populates="payment", cascade="all, delete-orphan")
     emails = relationship("Email", back_populates="payment", cascade="all, delete-orphan")
