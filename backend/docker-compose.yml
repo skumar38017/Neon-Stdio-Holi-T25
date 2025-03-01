@@ -57,7 +57,8 @@ services:
       REDIS_USER: ${REDIS_USER}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB_BROKER: ${REDIS_DB_BROKER}
-      REDIS_DB_RESULT: ${REDIS_DB_RESULT}  
+      REDIS_DB_RESULT: ${REDIS_DB_RESULT} 
+      REDIS_BIND_IP: ${REDIS_BIND_IP}
     depends_on:
       postgres:
         condition: service_healthy  
