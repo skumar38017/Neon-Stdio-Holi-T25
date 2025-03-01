@@ -172,7 +172,11 @@ class UserRoutes:
             return JSONResponse(
                 content={
                     "message": "User registered successfully",
-                    "user_data": user_response.dict()
+                    "user_data": {
+                        **user_response.model_dump(),
+                        "created_at": user_response.created_at.isoformat(),  # Convert datetime to string
+                        "updated_at": user_response.updated_at.isoformat()   # Convert datetime to string
+                    }
                 }
             )
 

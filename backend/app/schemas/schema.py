@@ -3,6 +3,7 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
+from pydantic import BaseModel
 from app.utils.validator import validate_phone  # Import custom phone number validator
 
 # User Schema
@@ -29,7 +30,10 @@ class UserResponse(UserBase):
     updated_at: datetime
 
     class Config:
-        from_attributes = True  
+        from_attributes = True 
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        } 
 
 # VerifyBase Schema
 class VerifyBase(BaseModel):
@@ -54,7 +58,10 @@ class TicketChoice(BaseModel):
     payment_method: str = Field(..., max_length=50)
 
     class Config:
-        from_attributes = True  
+        from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        }   
 
 # Payment Schema
 class PaymentData(BaseModel):
@@ -96,6 +103,9 @@ class OrderResponse(OrderBase):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        } 
 
 class PaymentBase(BaseModel):
     ticket_description: str = Field(..., max_length=500)
@@ -146,6 +156,9 @@ class PaymentResponse(PaymentBase):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        } 
 
 # QR Code Schema
 class QRCodeBase(BaseModel):
@@ -167,6 +180,9 @@ class QRCodeResponse(QRCodeBase):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        } 
 
 # SMS Schema
 class SMSBase(BaseModel):
@@ -191,6 +207,9 @@ class SMSResponse(SMSBase):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        } 
 
 # Email Schema
 class EmailBase(BaseModel):
@@ -210,3 +229,6 @@ class EmailResponse(EmailBase):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        } 

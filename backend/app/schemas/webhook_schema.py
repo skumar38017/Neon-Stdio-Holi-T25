@@ -1,6 +1,7 @@
 #  app/schemas/webhook_schema.py
 
 from pydantic import BaseModel
+from datetime import datetime
 
 class WebhookBase(BaseModel):
     event: str  # Event type
@@ -12,6 +13,9 @@ class WebhookBase(BaseModel):
     class Config:
         # Ensure we support dict type for data
         arbitrary_types_allowed = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()  # Automatically convert datetime
+        }
 
 
 class WebhookCreate(WebhookBase):
