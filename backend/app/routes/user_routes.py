@@ -19,12 +19,11 @@ from app.utils.otp_verification import verify_otp
 from app.utils.validator import validate_phone
 from app.utils.validate_email import validate_email
 
-
 class UserRoutes:
     def __init__(self):
         self.router = APIRouter()
-        self.otp_service = OTPService()  # Correct reference to OTPService
-        self.email_otp_service = EmailOTPService()  # Correct reference to EmailOTPService
+        self.otp_service = OTPService()
+        self.email_otp_service = EmailOTPService()
         self.user_crud = UserCRUD()
         self.redis_data_storage = RedisDataStorage()
         self.logger = logging.getLogger("uvicorn.error")
@@ -86,13 +85,10 @@ class UserRoutes:
             normalized_email = validate_email(email)
             self.logger.info(f"Normalized email: {normalized_email}")
 
-            # Step 2: Prepare user data
-            user_data = {"name": name, "email": normalized_email, "phone_no": normalized_phone_no}
-
-            # Step 3: Generate OTP
+            # Step 2: Generate OTP
             otp = generate_otp()
 
-            # Step 4: Manage session
+            # Step 3: Manage session
             session = getattr(request.state, "session", None)
             if session is None or "session_id" not in session:
                 session_id = os.urandom(24).hex()
@@ -100,10 +96,10 @@ class UserRoutes:
             else:
                 session_id = session["session_id"]
 
-            # Step 5: Generate Redis key
+            # Step 4: Generate Redis key
             redis_key = RedisDataStorage.generate_redis_key(name=name, email=normalized_email, phone_no=normalized_phone_no)
 
-            # Step 6: Store data in Redis
+            # Step 5: Store data in Redis
             redis_data = {
                 "name": name,
                 "email": normalized_email,
@@ -117,19 +113,19 @@ class UserRoutes:
                 expiration=config.expiration_time,
             )
 
-            # Step 7: Trigger OTP task asynchronously using OTPService
+            # Step 6: Trigger OTP task asynchronously using OTPService
             task_id = await self.otp_service.send_otp(phone_no=normalized_phone_no, name=name, otp=otp)
             task_id = await self.email_otp_service.send_email_otp(email=normalized_email, name=name, otp=otp)
             
             self.logger.info(f"OTP generated for {normalized_phone_no}, Phone_OTP task_id: {task_id}")
             self.logger.info(f"OTP generated for {normalized_email}, Email_OTP task_id: {task_id}")
 
-            # Step 9: Respond with task information
+            # Step 7: Respond with task information
             return JSONResponse(
                 content={
                     "message": "OTP sent and user data stored temporarily in Redis.",
-                    "phone_no": redis_key,
-                    "task_id": task_id,
+                    "task_id": redis_key,
+                    # "task_id": task_id,
                 },
                 headers={"Set-Cookie": f"session_id={session_id}; HttpOnly"},
             )
@@ -137,52 +133,54 @@ class UserRoutes:
         except Exception as e:
             self.logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred.")
-        
+           
     async def verify_otp_route(
         self,
-        redis_key: str = Form(..., description="Redis key storing OTP"),
+        request: Request,  # To access session data
         otp: str = Form(..., description="OTP entered by the user"),
         db: AsyncSession = Depends(get_db),
     ) -> JSONResponse:
         """
-        Verify the OTP and register the user if the OTP is valid.
+        Verify the OTP without requiring manual redis_key input.
         """
         try:
-            # Step 1: Verify the OTP
-            user_data = await verify_otp(redis_key, otp)
-            print('user_data', user_data)
+            # Step 1: Get user session ID
+            session_id = request.state.session.get("session_id", None)
+            if not session_id:
+                raise HTTPException(status_code=401, detail="Session expired or invalid.")
 
+            # Step 2: Retrieve redis_key from session
+            redis_storage = RedisDataStorage()
+            redis_key = RedisDataStorage.get_redis_key_by_session(session_id)
+            if not redis_key:
+                raise HTTPException(status_code=400, detail="No OTP found for session.")
+
+            # Step 3: Verify OTP using the retrieved redis_key
+            user_data = await verify_otp(redis_key, otp)
             if not user_data:
                 raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
-            
-            # Step 2: Remove session data from user_data
-            user_data.pop('session', None)
 
-            # Step 3: Convert user_data to UserCreate schema
-            user_create = UserCreate(
-                name=user_data['name'],
-                email=user_data['email'],
-                phone_no=user_data['phone_no']
-            )
+            # Step 4: Convert user_data to UserCreate schema
+            user_create = UserCreate(**user_data)
 
-            # Step 4: Save user data to the database using UserCRUD
+            # Step 5: Save user in the main database
             user_response = await self.user_crud.create_user(db, user_create)
 
-            # Step 5: Return success response with user data
+            # Step 6: Return success response
             return JSONResponse(
                 content={
                     "message": "User registered successfully",
                     "user_data": {
                         **user_response.model_dump(),
-                        "created_at": user_response.created_at.isoformat(),  # Convert datetime to string
-                        "updated_at": user_response.updated_at.isoformat()   # Convert datetime to string
+                        "created_at": user_response.created_at.isoformat(),
+                        "updated_at": user_response.updated_at.isoformat()
                     }
                 }
             )
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error verifying OTP: {str(e)}")
-            
+                    
     async def get_user_route(self, uuid: str, db: AsyncSession = Depends(get_db)) -> UserResponse:
         """
         Retrieve a user by UUID.
