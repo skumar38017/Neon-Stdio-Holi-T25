@@ -2,6 +2,7 @@
 from redis import Redis
 import logging
 from app.config import config
+from app.utils.common_icons import event_icons  # Import event icons
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -14,23 +15,36 @@ class RedisClient:
         """
         try:
             self.redis = Redis.from_url(config.redis_result_url, decode_responses=False)
-            logger.info("Redis client initialized.")
-            print("Redis client initialized.")
+            logger.info(f"{event_icons['checkmark']} ✅ Redis client initialized.")
+            print(f"✅ Redis client initialized.")
         except Exception as e:
-            logger.error(f"Failed to initialize Redis client: {e}")
+            logger.error(f"{event_icons['error']} ❌ Failed to initialize Redis client: {e}")
             raise
 
     def setex(self, name, time, value):
         """
         Set the value of a key with an expiration time.
         """
-        return self.redis.setex(name, time, value)
+        try:
+            self.redis.setex(name, time, value)
+            logger.info(f"{event_icons['set']} Set key {name} with expiration time {time}.")
+            print(f"Set key {name} with expiration time {time}.")
+        except Exception as e:
+            logger.error(f"{event_icons['error']} ❌ Error setting key {name}: {e}")
+            raise
 
     def get(self, name):
         """
         Get the value of a key.
         """
-        return self.redis.get(name)
+        try:
+            result = self.redis.get(name)
+            logger.info(f"{event_icons['get']} Retrieved value for key {name}.")
+            print(f"Retrieved value for key {name}.")
+            return result
+        except Exception as e:
+            logger.error(f"{event_icons['error']} ❌ Error getting key {name}: {e}")
+            raise
 
     def connect(self):
         """
@@ -38,10 +52,10 @@ class RedisClient:
         """
         try:
             self.redis.ping()
-            logger.info("Successfully connected to Redis.")
+            logger.info(f"{event_icons['checkmark']} ✅ Successfully connected to Redis. Redis host: {config.redis_result_url}")
             print(f"✅ Successfully connected to Redis. Redis host: {config.redis_result_url}")
         except Exception as e:
-            logger.error(f" ❌ Failed to connect to Redis: {e}")
+            logger.error(f"{event_icons['error']} ❌ Failed to connect to Redis: {e}")
             raise
 
     def execute_command(self, *args, **kwargs):
@@ -50,11 +64,11 @@ class RedisClient:
         """
         try:
             result = self.redis.execute_command(*args, **kwargs)
-            logger.info(f"Executed Redis command: {args[0]}")
+            logger.info(f"{event_icons['command']} Executed Redis command: {args[0]}")
             print(f"Executed Redis command: {args[0]}")
             return result
         except Exception as e:
-            logger.error(f"Error executing Redis command {args[0]}: {e}")
+            logger.error(f"{event_icons['error']} ❌ Error executing Redis command {args[0]}: {e}")
             raise
 
     def disconnect(self):
@@ -63,10 +77,10 @@ class RedisClient:
         """
         try:
             self.redis.close()
-            logger.info("Disconnected from Redis.")
-            print("Disconnected from Redis.")
+            logger.info(f"{event_icons['disconnect']} Disconnected from Redis.")
+            print(f"Disconnected from Redis.")
         except Exception as e:
-            logger.error(f"Error disconnecting from Redis: {e}")
+            logger.error(f"{event_icons['error']} ❌ Error disconnecting from Redis: {e}")
             raise
 
     def get_redis_status(self):
@@ -76,12 +90,12 @@ class RedisClient:
         try:
             # Fetch general information about Redis server
             info = self.redis.info()
-            logger.info(f"Redis Server Information: {info}")
+            logger.info(f"{event_icons['info']} Redis Server Information: {info}")
             print("Redis Server Information:")
             for key, value in info.items():
                 print(f"{key}: {value}")
         except Exception as e:
-            logger.error(f"Error fetching Redis status: {e}")
+            logger.error(f"{event_icons['error']} ❌ Error fetching Redis status: {e}")
             raise
 
     def get_active_clients(self):
@@ -91,12 +105,12 @@ class RedisClient:
         try:
             # Get the list of connected clients
             clients = self.redis.client_list()
-            logger.info(f"Active Redis Clients: {clients}")
+            logger.info(f"{event_icons['user']} Active Redis Clients: {clients}")
             print("Active Redis Clients:")
             for client in clients:
                 print(client)
         except Exception as e:
-            logger.error(f"Error fetching active Redis clients: {e}")
+            logger.error(f"{event_icons['error']} ❌ Error fetching active Redis clients: {e}")
             raise
 
 # Create a RedisClient instance

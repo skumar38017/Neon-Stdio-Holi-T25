@@ -36,24 +36,24 @@ async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db))
 
     # Verify the signature to ensure it came from Razorpay
     if not razorpay.utils.verify_webhook_signature(payload, sig_header, secret):
-        logger.error("❌ Invalid webhook signature")
+        logger.error(f"{event_icons['error']} ❌ Invalid webhook signature")
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
     # Parse the webhook data
     webhook_data = json.loads(payload.decode())
     event = webhook_data.get("event")
-    logger.info(f"Received Razorpay event: {event} {event_icons.get(event, '')}")
+    logger.info(f"{event_icons.get(event, '⚠️')} 📬 Received Razorpay event: {event}")
 
     try:
         # Handle payment events
         if event == "payment.authorized":
             # Handle payment authorization
-            logger.info(f"{event_icons.get(event)} Payment authorized: {webhook_data}")
+            logger.info(f"{event_icons.get(event, '✅')} Payment authorized: {webhook_data}")
             # Add your logic here (e.g. mark payment as authorized in your DB)
 
         elif event == "payment.failed":
             # Handle payment failure
-            logger.error(f"{event_icons.get(event)} Payment failed: {webhook_data}")
+            logger.error(f"{event_icons.get(event, '❌')} Payment failed: {webhook_data}")
             # Add your logic here (e.g. mark payment as failed in your DB)
 
         elif event == "payment.captured":
@@ -65,19 +65,19 @@ async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db))
             if payment_record:
                 payment_record.transaction_status = "captured"
                 await db.commit()
-                logger.info(f"{event_icons.get(event)} Payment {transaction_id} captured.")
+                logger.info(f"{event_icons.get(event, '✅')} Payment {transaction_id} captured.")
             else:
-                logger.warning(f"{event_icons.get(event)} No payment found for transaction ID: {transaction_id}")
+                logger.warning(f"{event_icons.get(event, '⚠️')} No payment found for transaction ID: {transaction_id}")
 
         # Handle other events similarly by checking the event type
         elif event == "order.paid":
             # Handle order paid
-            logger.info(f"{event_icons.get(event)} Order paid: {webhook_data}")
+            logger.info(f"{event_icons.get(event, '✅')} Order paid: {webhook_data}")
             # Add your logic here to update the order status
 
         elif event == "refund.processed":
             # Handle refund processed
-            logger.info(f"{event_icons.get(event)} Refund processed: {webhook_data}")
+            logger.info(f"{event_icons.get(event, '✅')} Refund processed: {webhook_data}")
 
         # Default case for unhandled events
         else:
@@ -87,7 +87,7 @@ async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db))
         return JSONResponse(status_code=200, content={"message": "Event received successfully"})
 
     except Exception as e:
-        logger.error(f"Error handling webhook event: {e}")
+        logger.error(f"{event_icons['error']} ❌ Error handling webhook event: {e}")
         return JSONResponse(status_code=500, content={"message": "Internal server error"})
 
 # Export the router

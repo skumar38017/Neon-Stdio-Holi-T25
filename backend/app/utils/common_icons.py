@@ -170,6 +170,7 @@ event_icons = {
     "cross": "❌❎",
     "comment": "💬🗣️",
     "handshake": "🤝💼",
+    "checkmark": "✅",
     
     # Database operations
 
@@ -206,4 +207,22 @@ event_icons = {
     "redis.list.create": "🗃️📜",
     "redis.hash.create": "🗃️#️⃣",
     "redis.set.create": "🗃️🔢",
+
+    # websocket-related events
+    "websocket_general_endpoint": "🌐📡",
+    "websocket_realtime_endpoint": "📡⏳",
+    "websocket_otp_status_endpoint": "🔑🕵️",
+    "websocket_session_endpoint": "💬🔗",
+    "OTP_status_WebSocket_disconnected.": "🔴❌",
+    "OTP_status_WebSocket_connected.": "🔌🔗🟢",
+    "OTP_status_WebSocket_subscribed.": "🔗📞",
+    "OTP_status_WebSocket_unsubscribed.": "🔗📤",
+    "OTP_status_WebSocket_message_received.": "📬📞",
+    "OTP_status_WebSocket_ping_received.": "📞📤",
+    "Ping_received_sending_pong." : "🟢",
+    "Ping_received" : "🟢",
+    "Pong_received" : "🟢",
+    "OTP_status_message_received": "💬",
+    "Client_subscribed": "🔔📞",
+
 }
