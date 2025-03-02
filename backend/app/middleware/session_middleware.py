@@ -11,6 +11,7 @@ from typing import Optional
 from app.config import config
 from app.services.websocket_service import WebSocketHandler
 from app.database.redisclient import redis_client  # Import the RedisClient instance
+import msgpack
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -54,7 +55,8 @@ class RedisSessionMiddleware(BaseHTTPMiddleware):
                 else:
                     session_data = self.redis.get(f"session:{session_id}")
                     if session_data:
-                        request.state.session = pickle.loads(session_data)
+                        # Deserialize using msgpack
+                        request.state.session = msgpack.unpackb(session_data, raw=False)
                         logger.info(f"Loaded session data for session_id: {session_id}")
                     else:
                         request.state.session = {}
@@ -62,12 +64,12 @@ class RedisSessionMiddleware(BaseHTTPMiddleware):
     
                 response = await call_next(request)
 
-                # Save session data back to Redis
+                # Save session data back to Redis (Serialize using msgpack)
                 if hasattr(request.state, "session"):
-                    session_data = pickle.dumps(request.state.session)  # Serialize session data
+                    session_data = msgpack.packb(request.state.session, use_bin_type=True)
                     self.redis.setex(
                         f"session:{session_id}",
-                        config.expiration_time,
+                        config.session_expiration_time,
                         session_data,
                     )
                     if not request.cookies.get("session_id"):
@@ -77,7 +79,7 @@ class RedisSessionMiddleware(BaseHTTPMiddleware):
                             httponly=True,
                             secure=True,
                             samesite="lax",
-                            max_age=config.expiration_time,
+                            max_age=config.session_expiration_time,
                         )
 
                 return response

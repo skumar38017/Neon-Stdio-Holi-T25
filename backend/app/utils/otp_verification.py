@@ -1,29 +1,25 @@
 #  app/utils/otp_verification.py
 
 import json
-from app.config import config
 from app.utils.redis_data_storage import RedisDataStorage
+from fastapi import HTTPException
 
 async def verify_otp(redis_key: str, otp: str) -> dict:
     """
-    Verify the OTP stored in Redis.
+    Verify the OTP stored in Redis using the session ID.
     """
-    redis_storage = RedisDataStorage()
+    # Retrieve stored user data from Redis using the session ID
+    user_data = RedisDataStorage.get_data_from_redis(redis_key)
+    print(f"User data from Redis: {user_data}")
 
-    # Retrieve stored user data
-    user_data_json = redis_storage.get_data_from_redis(redis_key)
-    
-    if not user_data_json:
-        return None
-
-    # Convert to dictionary
-    user_data = json.loads(user_data_json)
+    if not user_data:
+        raise HTTPException(status_code=400, detail="No data found for session.")
 
     # Validate OTP
     if user_data.get("otp") != otp:
-        return None  # Invalid OTP
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
 
-    # Remove OTP before saving user
+    # Remove OTP before saving user data
     user_data.pop("otp", None)
 
     return user_data

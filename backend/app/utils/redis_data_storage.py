@@ -9,103 +9,45 @@ from app.config import config
 
 class RedisDataStorage:
     """
-    A class to handle Redis data storage operations, including hashing and session management.
+    A class to handle Redis data storage operations, storing all user data under session ID.
     """
-
     @staticmethod
-    def hash_data(data: str) -> str:
+    def store_data_in_redis(session_id: str, data: dict, expiration: int = config.expiration_time) -> None:
         """
-        Hash the input data using SHA-256.
-
-        Args:
-            data (str): The data to hash.
-
-        Returns:
-            str: The hashed value as a hexadecimal string.
-        """
-        return hashlib.sha256(data.encode()).hexdigest()
-
-    @staticmethod
-    def generate_redis_key(name: str, email: str, phone_no: str) -> str:
-        """
-        Generate a unique Redis key by hashing the combination of name, email, and phone number.
-
-        Args:
-            name (str): The name of the user.
-            email (str): The email of the user.
-            phone_no (str): The phone number of the user.
-
-        Returns:
-            str: The generated Redis key.
-        """
-        combined_data = f"{name}_{email}_{phone_no}"
-        return f"{phone_no}:{RedisDataStorage.hash_data(combined_data)}"
-
-    @staticmethod
-    def store_data_in_redis(key: str, data: dict, session_id: str, expiration: int = config.expiration_time) -> None:
-        """
-        Store hashed data in Redis with an expiration time and session information.
+        Store user data in Redis using the session ID as the key.
         """
         try:
-            data_with_session = {**data, "session": session_id}
-            combined_data = json.dumps(data_with_session)
-            hashed_data = RedisDataStorage.hash_data(combined_data)
-
-            redis_client.setex(
-                key, expiration, json.dumps({"original_data": data_with_session, "hashed_data": hashed_data})
-            )
+            # Include session ID and OTP in the data
+            data_with_session = {**data, "session_id": session_id}
+            # Store the data under the session ID key
+            redis_client.setex(session_id, expiration, json.dumps(data_with_session))
         except Exception as e:
             print(f"Error storing data in Redis: {e}")
             raise
 
     @staticmethod
-    def get_data_from_redis(key: str) -> Optional[dict]:
+    def get_data_from_redis(session_id: str) -> Optional[dict]:
         """
-        Retrieve data from Redis using the key.
+        Retrieve data from Redis using the session ID.
         """
         try:
-            data = redis_client.get(key)
+            data = redis_client.get(session_id)
             if data:
-                stored_data = json.loads(data.decode())
-                original_data = stored_data.get("original_data")
-                hashed_data = stored_data.get("hashed_data")
-
-                if RedisDataStorage.hash_data(json.dumps(original_data)) == hashed_data:
-                    return original_data  # Return the original data if the hash matches
-                else:
-                    print("Data integrity check failed: Hash mismatch")
-                    return None
+                # If data exists, return it as a JSON object
+                return json.loads(data.decode())
             return None
         except Exception as e:
             print(f"Error retrieving data from Redis: {e}")
             return None
 
     @staticmethod
-    def delete_data_from_redis(key: str) -> bool:
+    def delete_data_from_redis(session_id: str) -> bool:
         """
-        Delete data from Redis using the key.
+        Delete user data from Redis using the session ID.
         """
         try:
-            result = redis_client.delete(key)
+            result = redis_client.delete(session_id)
             return result > 0
         except Exception as e:
-            print(f"Error deleting data from Redis for key {key}: {e}")
+            print(f"Error deleting data from Redis for session {session_id}: {e}")
             return False
-
-    @staticmethod
-    def get_redis_key_by_session(session_id: str) -> Optional[str]:
-        """
-        Retrieve the Redis key associated with a session.
-        """
-        try:
-            redis_keys = redis_client.keys("*")
-            for key in redis_keys:
-                data = redis_client.get(key)
-                if data:
-                    parsed_data = json.loads(data)
-                    if parsed_data.get("original_data", {}).get("session") == session_id:
-                        return key.decode()
-            return None
-        except Exception as e:
-            print(f"Error fetching redis key: {e}")
-            return None

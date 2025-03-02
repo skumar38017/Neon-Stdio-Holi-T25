@@ -1,6 +1,7 @@
 #  app/schemas/__init__.py
 
-from app.schemas.schema import UserBase, UserCreate, UserResponse, VerifyOTPResponse
+from app.schemas.schema import UserBase, UserCreate, UserResponse, VerifyOTPResponse, VerifyBase
+from app.schemas.schema import TicketChoice
 from app.schemas.schema import PaymentBase, PaymentCreate, PaymentResponse
 from app.schemas.schema import QRCodeBase, QRCodeCreate, QRCodeResponse
 from app.schemas.schema import SMSBase, SMSCreate, SMSResponse

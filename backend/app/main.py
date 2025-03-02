@@ -102,6 +102,23 @@ async def startup_event():
         logger.error(f"{event_icons['error']} Startup tasks failed: {e}")
         sys.exit(1)  # Exit the application if setup fails
 
+
+@app.middleware("http")
+async def add_session_to_state(request: Request, call_next):
+    session_id = request.cookies.get("session_id")
+    if session_id:
+        # Retrieve session from Redis (or wherever you're storing it)
+        session_data = redis_client.get(session_id)
+        if session_data:
+            request.state.session = session_data  # Assign session data to request.state
+        else:
+            request.state.session = {}
+    else:
+        request.state.session = {}  # No session if no session_id in cookies
+    
+    response = await call_next(request)
+    return response
+
 # Exception Handler
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):

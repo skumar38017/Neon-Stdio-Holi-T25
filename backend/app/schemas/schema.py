@@ -37,13 +37,12 @@ class UserResponse(UserBase):
 
 # VerifyBase Schema
 class VerifyBase(BaseModel):
-    session_id: str
     otp: str
 
 # VerifyOTPResponse Schema
 class VerifyOTPResponse(BaseModel):
     message: str
-    redis_key: str
+    redis_key: str  # The Redis key generated for the user
     task_id: str
     success: bool
     session_id: str

@@ -134,6 +134,11 @@ class Config:
     @property
     def expiration_time(self) -> int:
         return settings.EXPIRATION_TIME
+    
+    # Session Expiration Time
+    @property
+    def session_expiration_time(self) -> int:
+        return settings.SESSION_EXPIRATION_TIME
 
     # Email Settings
     @property

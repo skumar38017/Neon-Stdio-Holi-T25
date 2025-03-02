@@ -86,6 +86,9 @@ class Settings:
     # Data Storage Settings
     EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
 
+    # Session Settings
+    SESSION_EXPIRATION_TIME: int = int(os.getenv("SESSION_EXPIRATION_TIME", 600))
+
     # Razorpay Configuration
     RAZORPAY_KEY: str = os.getenv("RAZORPAY_KEY", "default_razorpay_key")
     RAZORPAY_SECRET: str = os.getenv("RAZORPAY_SECRET", "default_razorpay_secret")
