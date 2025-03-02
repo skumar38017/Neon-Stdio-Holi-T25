@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 import logging
 import os
 from app.database.database import get_db
-from app.schemas import UserCreate, UserResponse
+from app.schemas import UserCreate, UserResponse, VerifyOTPResponse
 from app.config import config
 from app.utils.redis_data_storage import RedisDataStorage
 from app.curd_operation.user_curd import UserCRUD
@@ -33,7 +33,7 @@ class UserRoutes:
         """
         self.router.post(
             "/register",
-            response_model=UserResponse,
+            response_model=VerifyOTPResponse,
             status_code=201,
             description="Create a new user for the ticketing system and store user information in the database",
         )(self.create_user_route)
