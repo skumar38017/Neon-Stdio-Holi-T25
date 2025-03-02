@@ -1,4 +1,4 @@
-#  app/curd_operation/user_curd.py
+# app/curd_operation/user_curd.py
 
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.database.models import User
 from app.schemas.schema import UserCreate, UserResponse
 import logging
-
+from app.utils.common_icons import event_icons  # Import event icons for easy access
 
 class UserCRUD:
     """
@@ -30,7 +30,7 @@ class UserCRUD:
         """
         try:
             # Log the incoming user data
-            self.logger.info(f"Creating user: {user.name}, {user.email}, {user.phone_no}")
+            self.logger.info(f"{event_icons['user.create']} Creating user: {user.name}, {user.email}, {user.phone_no}")
 
             db_user = User(
                 name=user.name,
@@ -44,12 +44,12 @@ class UserCRUD:
             await db.refresh(db_user)
 
             # Log success
-            self.logger.info(f"User created with UUID: {db_user.uuid}")
+            self.logger.info(f"{event_icons['user.success']} User created with UUID: {db_user.uuid}")
             return UserResponse.from_orm(db_user)
 
         except SQLAlchemyError as e:
             # Log the error if there's an issue with the DB
-            self.logger.error(f"SQLAlchemyError while creating user: {str(e)}")
+            self.logger.error(f"{event_icons['system.error']} SQLAlchemyError while creating user: {str(e)}")
             await db.rollback()
             raise e
 
@@ -70,14 +70,14 @@ class UserCRUD:
             user = result.scalars().first()
 
             if user:
-                self.logger.info(f"User found with UUID: {uuid}")
+                self.logger.info(f"{event_icons['user.found']} User found with UUID: {uuid}")
                 return UserResponse.from_orm(user)
 
-            self.logger.warning(f"No user found with UUID: {uuid}")
+            self.logger.warning(f"{event_icons['user.notfound']} No user found with UUID: {uuid}")
             return None
 
         except SQLAlchemyError as e:
-            self.logger.error(f"SQLAlchemyError while retrieving user with UUID {uuid}: {str(e)}")
+            self.logger.error(f"{event_icons['system.error']} SQLAlchemyError while retrieving user with UUID {uuid}: {str(e)}")
             raise e
 
     async def update_user(self, db: AsyncSession, uuid: str, user: UserCreate) -> UserResponse:
@@ -108,14 +108,14 @@ class UserCRUD:
                 await db.commit()
                 await db.refresh(db_user)
 
-                self.logger.info(f"User updated with UUID: {uuid}")
+                self.logger.info(f"{event_icons['user.update']} User updated with UUID: {uuid}")
                 return UserResponse.from_orm(db_user)
 
-            self.logger.warning(f"User with UUID {uuid} not found for update.")
+            self.logger.warning(f"{event_icons['user.notfound']} User with UUID {uuid} not found for update.")
             return None
 
         except SQLAlchemyError as e:
-            self.logger.error(f"SQLAlchemyError while updating user with UUID {uuid}: {str(e)}")
+            self.logger.error(f"{event_icons['system.error']} SQLAlchemyError while updating user with UUID {uuid}: {str(e)}")
             await db.rollback()
             raise e
 
@@ -140,14 +140,13 @@ class UserCRUD:
                 await db.delete(db_user)
                 await db.commit()
 
-                self.logger.info(f"User deleted with UUID: {uuid}")
+                self.logger.info(f"{event_icons['user.delete']} User deleted with UUID: {uuid}")
                 return True
 
-            self.logger.warning(f"User with UUID {uuid} not found for deletion.")
+            self.logger.warning(f"{event_icons['user.notfound']} User with UUID {uuid} not found for deletion.")
             return False
 
         except SQLAlchemyError as e:
-            self.logger.error(f"SQLAlchemyError while deleting user with UUID {uuid}: {str(e)}")
+            self.logger.error(f"{event_icons['system.error']} SQLAlchemyError while deleting user with UUID {uuid}: {str(e)}")
             await db.rollback()
             raise e
-
