@@ -171,7 +171,9 @@ event_icons = {
     "comment": "💬🗣️",
     "handshake": "🤝💼",
     "checkmark": "✅",
-    
+    "otp.store": "🔑💾",
+    "session.store": "💬🔗",
+    "get": "🔎🔍",
     # Database operations
 
     "database": "🐘",

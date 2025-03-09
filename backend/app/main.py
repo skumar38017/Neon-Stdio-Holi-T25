@@ -80,7 +80,7 @@ async def startup_event():
 
         # Redis Connection Check    
         logger.info(f"{event_icons['payment.downtime.started']} Checking Redis connection...")
-        redis_client.connect()
+        await redis_client.connect()
         logger.info(f"{event_icons['payment.captured']} Redis connection successful.")
 
         # Razorpay Connection Check
@@ -108,7 +108,7 @@ async def add_session_to_state(request: Request, call_next):
     session_id = request.cookies.get("session_id")
     if session_id:
         # Retrieve session from Redis (or wherever you're storing it)
-        session_data = redis_client.get(session_id)
+        session_data = await redis_client.get(session_id)
         if session_data:
             request.state.session = session_data  # Assign session data to request.state
         else:

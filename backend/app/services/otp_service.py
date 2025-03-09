@@ -19,7 +19,7 @@ class OTPService:
         try:
             await self.websocket_handler.send_task_status(phone_no, "queued")
             task_id = str(uuid.uuid4())
-            retry_attempts = int(self.redis_client.get(f"otp_retry_{phone_no}") or 0)
+            retry_attempts = int(await self.redis_client.get(f"otp_retry_{phone_no}") or 0)
             is_retry = retry_attempts > 0
             await self._send_otp_to_rabbitmq(phone_no, name, otp, task_id, is_retry)
             self.logger.info(f"OTP task queued with ID {task_id} for phone {phone_no}")
@@ -30,7 +30,7 @@ class OTPService:
             raise HTTPException(status_code=500, detail="Failed to send OTP.")
 
     async def _track_task_status(self, task_id: str, phone_no: str, otp: str):
-        attempts = int(self.redis_client.get(f"otp_retry_{phone_no}") or 0)
+        attempts = int(await self.redis_client.get(f"otp_retry_{phone_no}") or 0)
         try:
             await asyncio.sleep(2)
             await self.websocket_handler.send_task_status(phone_no, "processing")
@@ -40,7 +40,7 @@ class OTPService:
                     self.logger.info(f"Task {task_id} completed successfully.")
                 else:
                     attempts += 1
-                    self.redis_client.setex(f"otp_retry_{phone_no}", config.otp_expiration_time, attempts)
+                    self.redis_client.setex(f"otp_retry_{phone_no}", config.otp_expiration_time['otp_expiration_time'], attempts)
                     await self.websocket_handler.send_task_status(phone_no, f"retrying attempt {attempts}")
                     await self._track_task_status(task_id, phone_no, otp)
             else:

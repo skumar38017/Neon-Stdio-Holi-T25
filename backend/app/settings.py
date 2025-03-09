@@ -82,11 +82,14 @@ class Settings:
 
     # OTP Settings
     OTP_EXPIRATION_TIME: int = int(os.getenv("OTP_EXPIRATION_TIME", 300))
+    OTP_SESSION_EXPIRATION_TIME: int = int(os.getenv("OTP_SESSION_EXPIRATION_TIME", 300))
 
     # Data Storage Settings
-    EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
+    DATA_EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
+    MAIN_SESSION_EXPIRATION_TIME: int = int(os.getenv("MAIN_SESSION_EXPIRATION_TIME", 600))
 
     # Session Settings
+    USER_SESSION_EXPIRATION_TIME: int = int(os.getenv("USER_SESSION_EXPIRATION_TIME", 600))
     SESSION_EXPIRATION_TIME: int = int(os.getenv("SESSION_EXPIRATION_TIME", 600))
 
     # Razorpay Configuration

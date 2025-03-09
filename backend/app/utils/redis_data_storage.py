@@ -1,53 +1,65 @@
 # app/utils/redis_data_storage.py
 
-import json
-import hashlib
 from typing import Optional
-from app.database.redisclient import redis_client  # Import the redis_client instance
+import json
+import logging
+from app.database.redisclient import redis_client
 from app.config import config
 
+logger = logging.getLogger(__name__)
 
 class RedisDataStorage:
-    """
-    A class to handle Redis data storage operations, storing all user data under session ID.
-    """
+    data_expiration_dict = {
+        "main_session": config.data_expiration_time['main_session'],
+        "user_session": config.data_expiration_time['user_session'],
+        "otp_session": config.data_expiration_time['otp_session'],
+    }
+
     @staticmethod
-    def store_data_in_redis(session_id: str, data: dict, expiration: int = config.expiration_time) -> None:
+    async def store_data_in_redis(session_type: str, session_id: str, data: dict, expiration: int = None) -> None:
         """
-        Store user data in Redis using the session ID as the key.
+        Stores data in Redis under the specified session type (main_session, user_session, otp_session).
         """
         try:
-            # Include session ID and OTP in the data
-            data_with_session = {**data, "session_id": session_id}
-            # Store the data under the session ID key
-            redis_client.setex(session_id, expiration, json.dumps(data_with_session))
+            if not isinstance(data, dict):
+                raise ValueError(f"Data must be a dictionary. Received: {type(data)}")
+
+            key = f"{session_type}:{session_id}"
+            expiration = expiration or RedisDataStorage.data_expiration_dict.get(session_type, 600)
+
+            await redis_client.setex(key, expiration, json.dumps(data))
+            logger.info(f"✅ Data stored in Redis for {key}")
         except Exception as e:
-            print(f"Error storing data in Redis: {e}")
+            logger.error(f"❌ Error storing data in Redis for {key}: {e}")
             raise
 
     @staticmethod
-    def get_data_from_redis(session_id: str) -> Optional[dict]:
+    async def get_data_from_redis(session_type: str, session_id: str) -> Optional[dict]:
         """
-        Retrieve data from Redis using the session ID.
+        Retrieves data from Redis for a specific session type.
         """
         try:
-            data = redis_client.get(session_id)
+            key = f"{session_type}:{session_id}"
+            data = await redis_client.get(key)
             if data:
-                # If data exists, return it as a JSON object
-                return json.loads(data.decode())
+                data = json.loads(data)
+                if not isinstance(data, dict):
+                    logger.warning(f"⚠️ Unexpected data type in Redis for {key}: {type(data)} - Value: {data}")
+                    return None
+                return data
             return None
         except Exception as e:
-            print(f"Error retrieving data from Redis: {e}")
+            logger.error(f"❌ Error retrieving data from Redis for {key}: {e}")
             return None
 
     @staticmethod
-    def delete_data_from_redis(session_id: str) -> bool:
+    async def delete_data_from_redis(session_type: str, session_id: str) -> bool:
         """
-        Delete user data from Redis using the session ID.
+        Deletes session data from Redis.
         """
         try:
-            result = redis_client.delete(session_id)
-            return result > 0
+            key = f"{session_type}:{session_id}"
+            return await redis_client.delete(key) > 0
         except Exception as e:
-            print(f"Error deleting data from Redis for session {session_id}: {e}")
+            logger.error(f"❌ Error deleting data from Redis for {key}: {e}")
             return False

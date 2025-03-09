@@ -1,38 +1,59 @@
-#  app/utils/otp_verification.py
+# app/utils/otp_verification.py
 
-import json
+import time
 from app.utils.redis_data_storage import RedisDataStorage
 from fastapi import HTTPException
 import logging
-from app.utils.common_icons import event_icons  # Import event icons for easy access
 
-# Initialize logger
 logger = logging.getLogger("uvicorn.error")
 
-async def verify_otp(redis_key: str, otp: str) -> dict:
+async def verify_otp(session_id: str, otp: str) -> dict:
     """
-    Verify the OTP stored in Redis using the session ID.
+    Verifies OTP and retrieves user data from `main_session`.
     """
     try:
-        # Step 1: Retrieve stored user data from Redis using the session ID
-        user_data = RedisDataStorage.get_data_from_redis(redis_key)
-        logger.info(f"{event_icons['redis.key.read']} User data retrieved from Redis for session: {redis_key}")
+        # Retrieve main session data
+        main_session_data = await RedisDataStorage.get_data_from_redis("main_session", session_id)
+        if not main_session_data:
+            logger.warning(f"⚠️ Main session data not found for session: {session_id}")
+            raise HTTPException(status_code=400, detail="Session expired or invalid.")
 
-        if not user_data:
-            logger.warning(f"{event_icons['system.error']} No data found for session: {redis_key}")
-            raise HTTPException(status_code=400, detail="No data found for session.")
+        # Extract OTP session data
+        otp_session_data = main_session_data.get("otp_session")
+        if not otp_session_data:
+            logger.warning(f"⚠️ OTP session data not found for session: {session_id}")
+            raise HTTPException(status_code=400, detail="OTP expired or not found.")
 
-        # Step 2: Validate OTP
-        if user_data.get("otp") != otp:
-            logger.warning(f"{event_icons['notification.read']} Invalid OTP for session: {redis_key}")
-            raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
+        # Check if OTP is expired
+        current_time = int(time.time())
+        if current_time > otp_session_data.get("otp_expiration_time", current_time):
+            logger.warning(f"⚠️ OTP expired for session: {session_id}")
+            raise HTTPException(status_code=400, detail="OTP expired.")
 
-        # Step 3: Remove OTP from the user data
-        user_data.pop("otp", None)
-        logger.info(f"{event_icons['otpVerify']} OTP verified successfully for session: {redis_key}")
+        # Verify OTP
+        if otp_session_data.get("otp") != otp:
+            logger.warning(f"❌ Invalid OTP for session: {session_id}")
+            raise HTTPException(status_code=400, detail="Invalid OTP.")
 
-        return user_data
+        # Extract user session data
+        user_session_data = main_session_data.get("user_session")
+        if not user_session_data:
+            logger.warning(f"⚠️ User session data not found for session: {session_id}")
+            raise HTTPException(status_code=400, detail="Session expired or invalid.")
 
+        # Cleanup temporary sessions
+        main_session_data.pop("otp_session", None)
+        main_session_data.pop("user_session", None)
+
+        # Update main session data in Redis
+        await RedisDataStorage.store_data_in_redis("main_session", session_id, main_session_data)
+
+        logger.info(f"✅ OTP verified successfully. Data retrieved from main_session: {session_id}")
+        return user_session_data
+
+    except HTTPException as e:
+        logger.error(f"❌ Error verifying OTP: {e.detail}")
+        raise
     except Exception as e:
-        logger.error(f"{event_icons['system.error']} Error verifying OTP for session {redis_key}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error verifying OTP: {str(e)}")
+        logger.error(f"❌ Error verifying OTP: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error verifying OTP")

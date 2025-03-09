@@ -20,7 +20,7 @@ class EmailOTPService:
         try:
             await self.websocket_handler.send_task_status(email, "queued")
             task_id = str(uuid.uuid4())
-            retry_attempts = int(self.redis_client.get(f"email_otp_retry_{email}") or 0)
+            retry_attempts = int(await self.redis_client.get(f"email_otp_retry_{email}") or 0)
             is_retry = retry_attempts > 0
             await self._send_email_otp_to_rabbitmq(email, name, otp, task_id, is_retry)
             self.logger.info(f"Email OTP task queued with ID {task_id} for email {email}")
@@ -31,7 +31,7 @@ class EmailOTPService:
             raise HTTPException(status_code=500, detail="Failed to send Email OTP.")
 
     async def _track_task_status(self, task_id: str, email: str, otp: str):
-        attempts = int(self.redis_client.get(f"email_otp_retry_{email}") or 0)
+        attempts = int(await self.redis_client.get(f"email_otp_retry_{email}") or 0)
         try:
             await asyncio.sleep(2)
             await self.websocket_handler.send_task_status(email, "processing")
@@ -41,7 +41,7 @@ class EmailOTPService:
                     self.logger.info(f"Task {task_id} completed successfully.")
                 else:
                     attempts += 1
-                    self.redis_client.setex(f"email_otp_retry_{email}", config.otp_expiration_time, attempts)
+                    self.redis_client.setex(f"email_otp_retry_{email}", config.otp_expiration_time['otp_expiration_time'], attempts)
                     await self.websocket_handler.send_task_status(email, f"retrying attempt {attempts}")
                     await self._track_task_status(task_id, email, otp)
             else:

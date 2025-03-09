@@ -30,6 +30,31 @@ class Config:
             "dev_mode": settings.DEV_MODE,
         }
 
+    # OTP Expiration Time (should return a Dict[str, int])
+    @property
+    def otp_expiration_time(self) -> Dict[str, int]:
+        return {
+            "otp_expiration_time": settings.OTP_EXPIRATION_TIME,
+            "otp_session_expiration_time": settings.OTP_SESSION_EXPIRATION_TIME,
+        }
+
+    # Data Storage Expiration Time (should return a Dict[str, int])
+    @property
+    def data_expiration_time(self) -> Dict[str, int]:
+        return {
+            "main_session": settings.MAIN_SESSION_EXPIRATION_TIME,
+            "user_session": settings.USER_SESSION_EXPIRATION_TIME,
+            "otp_session": settings.OTP_SESSION_EXPIRATION_TIME
+        }
+    
+    # Session Expiration Time (should return a Dict[str, int])
+    @property
+    def session_expiration_time(self) -> Dict[str, int]:
+        return {
+            "user_session": settings.USER_SESSION_EXPIRATION_TIME,
+            "session": settings.SESSION_EXPIRATION_TIME
+        }
+
     # Database URLs
     @property
     def database_url(self) -> str:
@@ -125,24 +150,9 @@ class Config:
             "PHONE_NUMBER": settings.TWILIO_PHONE_NUMBER  # Fixed typo in the key
         }
 
-    # OTP Expiration Time
-    @property
-    def otp_expiration_time(self) -> int:
-        return settings.OTP_EXPIRATION_TIME
-    
-    # Data Storage Expiration Time
-    @property
-    def expiration_time(self) -> int:
-        return settings.EXPIRATION_TIME
-    
-    # Session Expiration Time
-    @property
-    def session_expiration_time(self) -> int:
-        return settings.SESSION_EXPIRATION_TIME
-
     # Email Settings
     @property
-    def email_address(self) -> Dict[str, str]:
+    def email_address(self) -> str:
         return {
             "address": settings.EMAIL_ADDRESS,
             "password": settings.EMAIL_PASSWORD
