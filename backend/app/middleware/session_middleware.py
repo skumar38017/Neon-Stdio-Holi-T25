@@ -27,21 +27,24 @@ class RedisSessionMiddleware(BaseHTTPMiddleware):
                 if not session_id:
                     session_id = str(uuid.uuid4())
                     new_session = True
-                    session_data = {"user_session": {}, "otp_session": {}}
+                    main_session_data = {
+                        "session_id": session_id,
+                        "user_session": {},
+                        "otp_session": {}
+                    }
+                    await self.store_main_session(session_id, main_session_data)
                     logger.info(f"New session created: {session_id}")
                 else:
-                    session_data = await self.get_main_session(session_id)
-                    if not session_data:
+                    main_session_data = await self.get_main_session(session_id)
+                    if not main_session_data:
                         logger.warning(f"Session data not found for session_id: {session_id}")
                         raise HTTPException(status_code=400, detail="Session expired or invalid.")
                     logger.info(f"Loaded session data for session_id: {session_id}")
 
                 request.state.session_id = session_id
-                request.state.session_data = session_data
+                request.state.session_data = main_session_data
 
                 response = await call_next(request)
-
-                await self.store_main_session(session_id, session_data)
 
                 if new_session:
                     response.set_cookie(
@@ -65,7 +68,7 @@ class RedisSessionMiddleware(BaseHTTPMiddleware):
         try:
             redis_key = f"main_session:{session_id}"
             redis_value = json.dumps(session_data)
-            await self.redis.setex(redis_key, config.data_expiration_time['main_session'], redis_value)
+            await self.redis.setex(redis_key, config.session_expiration_time['main_session'], redis_value)
             logger.info(f"Session stored successfully: {redis_key}")
         except Exception as e:
             logger.error(f"Failed to store session in Redis for key {redis_key}. Error: {str(e)}")

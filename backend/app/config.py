@@ -35,23 +35,22 @@ class Config:
     def otp_expiration_time(self) -> Dict[str, int]:
         return {
             "otp_expiration_time": settings.OTP_EXPIRATION_TIME,
-            "otp_session_expiration_time": settings.OTP_SESSION_EXPIRATION_TIME,
         }
 
     # Data Storage Expiration Time (should return a Dict[str, int])
     @property
     def data_expiration_time(self) -> Dict[str, int]:
         return {
-            "main_session": settings.MAIN_SESSION_EXPIRATION_TIME,
-            "user_session": settings.USER_SESSION_EXPIRATION_TIME,
-            "otp_session": settings.OTP_SESSION_EXPIRATION_TIME
+            "data_expiration_time": settings.DATA_EXPIRATION_TIME,
         }
     
     # Session Expiration Time (should return a Dict[str, int])
     @property
     def session_expiration_time(self) -> Dict[str, int]:
         return {
+            "otp_session_expiration_time": settings.OTP_SESSION_EXPIRATION_TIME,
             "user_session": settings.USER_SESSION_EXPIRATION_TIME,
+            "main_session": settings.MAIN_SESSION_EXPIRATION_TIME,
             "session": settings.SESSION_EXPIRATION_TIME
         }
 

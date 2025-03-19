@@ -13,7 +13,6 @@ class Settings:
     - Loads settings from environment variables with defaults for development.
     - Provides type hints for better code readability and maintainability.
     """
-
     # General Application Settings
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     HOST: str = os.getenv("SERVER_IP", "0.0.0.0")
@@ -22,6 +21,18 @@ class Settings:
     ALLOWED_HOSTS: list[str] = os.getenv("ALLOWED_HOSTS", "*").split(",")
     CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
     DEV_MODE: bool = os.getenv("DEV_MODE", "False").lower() == "true"
+
+    # OTP Settings
+    OTP_EXPIRATION_TIME: int = int(os.getenv("OTP_EXPIRATION_TIME", 300))
+
+    # Data Storage Settings
+    DATA_EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
+
+    # Session Settings
+    USER_SESSION_EXPIRATION_TIME: int = int(os.getenv("USER_SESSION_EXPIRATION_TIME", 600))
+    OTP_SESSION_EXPIRATION_TIME: int = int(os.getenv("OTP_SESSION_EXPIRATION_TIME", 300))
+    SESSION_EXPIRATION_TIME: int = int(os.getenv("SESSION_EXPIRATION_TIME", 600))
+    MAIN_SESSION_EXPIRATION_TIME: int = int(os.getenv("MAIN_SESSION_EXPIRATION_TIME", 600))
 
     # Database Configuration
     POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
@@ -80,28 +91,13 @@ class Settings:
     TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "91xxxxxxxxxx")
 
-    # OTP Settings
-    OTP_EXPIRATION_TIME: int = int(os.getenv("OTP_EXPIRATION_TIME", 300))
-    OTP_SESSION_EXPIRATION_TIME: int = int(os.getenv("OTP_SESSION_EXPIRATION_TIME", 300))
-
-    # Data Storage Settings
-    DATA_EXPIRATION_TIME: str = os.getenv("EXPIRATION_TIME", "600")
-    MAIN_SESSION_EXPIRATION_TIME: int = int(os.getenv("MAIN_SESSION_EXPIRATION_TIME", 600))
-
-    # Session Settings
-    USER_SESSION_EXPIRATION_TIME: int = int(os.getenv("USER_SESSION_EXPIRATION_TIME", 600))
-    SESSION_EXPIRATION_TIME: int = int(os.getenv("SESSION_EXPIRATION_TIME", 600))
-
     # Razorpay Configuration
     RAZORPAY_KEY: str = os.getenv("RAZORPAY_KEY", "default_razorpay_key")
     RAZORPAY_SECRET: str = os.getenv("RAZORPAY_SECRET", "default_razorpay_secret")
 
-
     # Email Configuration
     EMAIL_ADDRESS: str = os.getenv("EMAIL_ADDRESS", "your_email_address")
     EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "your_email_password")
-
-
 
 # Export an instance of Settings for global access
 settings = Settings()
